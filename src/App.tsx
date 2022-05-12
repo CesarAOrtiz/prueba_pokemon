@@ -1,5 +1,11 @@
+import { PokemonsProvider } from "./contexts/PokemonsContext";
+
 function App() {
-  return <div>Hello World</div>;
+  return (
+    <PokemonsProvider>
+      <div>Hello World</div>
+    </PokemonsProvider>
+  );
 }
 
 export default App;
