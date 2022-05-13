@@ -11,16 +11,24 @@ export type TPokemonsContext = {
   pokemons: Data[];
   fetchNextPokemons: () => void;
   fetchPreviousPokemons: () => void;
+  fetchPokemonsByPage: (page: number) => void;
   loading: boolean;
   error: string;
+  total: number;
+  pageSize: number;
+  pages: number;
 };
 
 const defaultPokemonsContext: TPokemonsContext = {
   pokemons: [],
   fetchNextPokemons: () => {},
   fetchPreviousPokemons: () => {},
+  fetchPokemonsByPage: () => {},
   loading: false,
   error: "",
+  total: 0,
+  pageSize: 20,
+  pages: 0,
 };
 
 const PokemonsContext = createContext<TPokemonsContext>(defaultPokemonsContext);
@@ -47,11 +55,11 @@ export const PokemonsProvider = ({
     try {
       const response = await fetch(url);
       const data = await response.json();
+      setLoading(false);
       setPokemons(data);
-      setLoading(false);
     } catch (error: any) {
-      setError(error.message);
       setLoading(false);
+      setError(error.message);
     }
   }, []);
 
@@ -59,21 +67,27 @@ export const PokemonsProvider = ({
     if (pokemons.next) {
       fetchPokemons(pokemons.next);
     }
-  }, [pokemons]);
+  }, [pokemons, fetchPokemons]);
 
   const fetchPreviousPokemons = useCallback(async () => {
     if (pokemons.previous) {
       fetchPokemons(pokemons.previous);
     }
-  }, [pokemons]);
+  }, [pokemons, fetchPokemons]);
+
+  const fetchPokemonsByPage = useCallback(
+    (page: number) => {
+      const url = `https://pokeapi.co/api/v2/pokemon?offset=${
+        page * 20
+      }&limit=${20}`;
+      fetchPokemons(url);
+    },
+    [pokemons, fetchPokemons]
+  );
 
   useEffect(() => {
     fetchPokemons("https://pokeapi.co/api/v2/pokemon");
-  }, []);
-
-  useEffect(() => {
-    console.log("pokemons", pokemons);
-  }, [pokemons]);
+  }, [fetchPokemons]);
 
   return (
     <PokemonsContext.Provider
@@ -81,8 +95,12 @@ export const PokemonsProvider = ({
         pokemons: pokemons.results,
         fetchNextPokemons,
         fetchPreviousPokemons,
+        fetchPokemonsByPage,
         loading,
         error,
+        total: pokemons.count,
+        pageSize: 20,
+        pages: Math.ceil(pokemons.count / 20),
       }}
     >
       {children}

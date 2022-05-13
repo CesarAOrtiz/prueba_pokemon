@@ -1,9 +1,10 @@
 import { PokemonsProvider } from "./contexts/PokemonsContext";
+import List from "./components/List";
 
 function App() {
   return (
     <PokemonsProvider>
-      <div>Hello World</div>
+      <List />
     </PokemonsProvider>
   );
 }
