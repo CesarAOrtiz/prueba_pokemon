@@ -9,49 +9,90 @@ export const List = (props: any) => {
     fetchNextPokemons,
     fetchPreviousPokemons,
     fetchPokemonsByPage,
-    total,
-    pageSize,
+    // total,
+    // pageSize,
     pages,
+    currentPage,
+    haveNext,
+    havePrevious,
   } = usePokemons();
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  console.log(havePrevious);
   return (
     <div className="flex flex-col items-center p-8">
-      <div className="mt-4 mb-8 flex overflow-auto max-w-[300px]">
-        <div
+      <nav className="py-4 mb-4 flex overflow-auto max-w-[300px]">
+        <button
           onClick={fetchPreviousPokemons}
-          className="px-4 py-2 bg-blue-500 shadow shadow-blue-700 hover:shadow  text-white font-bold text-lg mx-4 rounded-full cursor-pointer"
+          className="h-10 w-10 px-2 mr-1 flex justify-center items-center rounded-full bg-gray-200 cursor-pointer
+          hover:bg-gray-600 hover:text-white disabled:opacity-50 disabled:hover:bg-gray-200 disabled:hover:text-inherit"
+          disabled={!havePrevious}
         >
-          {"<"}
-        </div>
-
-        {/* {[...Array(pages)].map((_, index) => (
-          <div
-            key={index}
-            onClick={() => fetchPokemonsByPage(index + 1)}
-            className="px-4 py-2 bg-blue-500 shadow shadow-blue-700 hover:shadow  text-white font-bold text-lg mx-4 rounded-full cursor-pointer"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="100%"
+            height="100%"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-6 h-6"
           >
-            {index + 1}
-          </div>
-        ))} */}
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
 
-        <div
+        <ul className="flex overflow-auto max-w-[300px] bg-gray-200 rounded-full">
+          {[...Array(pages)].map((_, index) => (
+            <li
+              key={index}
+              onClick={() => fetchPokemonsByPage(index + 1)}
+              className={`h-10 w-12 px-4 py-2 rounded-full cursor-pointer mr-1
+              hover:bg-gray-600 hover:text-white ${
+                currentPage === index + 1 ? "bg-gray-600 text-white" : ""
+              }`}
+            >
+              {index + 1}
+            </li>
+          ))}
+        </ul>
+
+        <button
           onClick={fetchNextPokemons}
-          className="px-4 py-2 bg-blue-500 shadow shadow-blue-700 hover:shadow text-white font-bold text-lg mx-4 rounded-full cursor-pointer"
+          className="h-10 w-10 px-2 py-2 ml-1 flex justify-center items-center rounded-full bg-gray-200 cursor-pointer
+          hover:bg-gray-600 hover:text-white disabled:opacity-50 disabled:hover:bg-gray-200 disabled:hover:text-inherit"
+          disabled={!haveNext}
         >
-          {">"}
-        </div>
-      </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="100%"
+            height="100%"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-6 h-6"
+          >
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </nav>
 
-      <div className="card-grid-container">
-        {pokemons.map((pokemon: any) => (
-          <Card key={pokemon.name} pokemon={pokemon} />
-        ))}
-      </div>
+      {loading && <div>Loading...</div>}
+
+      {error && <div>Error: {error}</div>}
+
+      {pokemons && (
+        <div className="max-w-screen-xl w-full">
+          <div className="card-grid-container w-full">
+            {pokemons.map((pokemon: any) => (
+              <Card key={pokemon.name} pokemon={pokemon} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

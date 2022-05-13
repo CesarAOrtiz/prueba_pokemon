@@ -17,6 +17,9 @@ export type TPokemonsContext = {
   total: number;
   pageSize: number;
   pages: number;
+  currentPage: number;
+  haveNext: boolean;
+  havePrevious: boolean;
 };
 
 const defaultPokemonsContext: TPokemonsContext = {
@@ -29,6 +32,9 @@ const defaultPokemonsContext: TPokemonsContext = {
   total: 0,
   pageSize: 20,
   pages: 0,
+  currentPage: 1,
+  haveNext: false,
+  havePrevious: false,
 };
 
 const PokemonsContext = createContext<TPokemonsContext>(defaultPokemonsContext);
@@ -48,6 +54,7 @@ export const PokemonsProvider = ({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchPokemons = useCallback(async (url: string) => {
     setLoading(true);
@@ -66,23 +73,26 @@ export const PokemonsProvider = ({
   const fetchNextPokemons = useCallback(async () => {
     if (pokemons.next) {
       fetchPokemons(pokemons.next);
+      setCurrentPage((prev) => prev + 1);
     }
   }, [pokemons, fetchPokemons]);
 
   const fetchPreviousPokemons = useCallback(async () => {
     if (pokemons.previous) {
       fetchPokemons(pokemons.previous);
+      setCurrentPage((prev) => prev - 1);
     }
   }, [pokemons, fetchPokemons]);
 
   const fetchPokemonsByPage = useCallback(
     (page: number) => {
       const url = `https://pokeapi.co/api/v2/pokemon?offset=${
-        (page * 20)-20
+        page * 20 - 20
       }&limit=${20}`;
       fetchPokemons(url);
+      setCurrentPage(page);
     },
-    [pokemons, fetchPokemons]
+    [fetchPokemons]
   );
 
   useEffect(() => {
@@ -101,6 +111,9 @@ export const PokemonsProvider = ({
         total: pokemons.count,
         pageSize: 20,
         pages: Math.ceil(pokemons.count / 20),
+        currentPage,
+        haveNext: !!pokemons.next,
+        havePrevious: !!pokemons.previous,
       }}
     >
       {children}
