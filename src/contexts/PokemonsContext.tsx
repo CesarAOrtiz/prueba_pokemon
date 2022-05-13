@@ -78,7 +78,7 @@ export const PokemonsProvider = ({
   const fetchPokemonsByPage = useCallback(
     (page: number) => {
       const url = `https://pokeapi.co/api/v2/pokemon?offset=${
-        page * 20
+        (page * 20)-20
       }&limit=${20}`;
       fetchPokemons(url);
     },
