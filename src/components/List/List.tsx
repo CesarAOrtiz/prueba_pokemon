@@ -3,23 +3,21 @@ import Card from "../Card";
 
 export const List = (props: any) => {
   const {
-    pokemons,
+    results,
     loading,
     error,
     fetchNextPokemons,
     fetchPreviousPokemons,
     fetchPokemonsByPage,
-    // total,
-    // pageSize,
     pages,
     currentPage,
     haveNext,
     havePrevious,
   } = usePokemons();
-  console.log(havePrevious);
+
   return (
-    <div className="flex flex-col items-center p-8">
-      <nav className="py-4 mb-4 flex overflow-auto max-w-[300px]">
+    <div className="flex flex-col items-center sm:p-8 p-2">
+      <nav className="py-4 mb-4 flex overflow-auto max-w-[260px]">
         <button
           onClick={fetchPreviousPokemons}
           className="h-10 w-10 px-2 mr-1 flex justify-center items-center rounded-full bg-gray-200 cursor-pointer
@@ -84,10 +82,10 @@ export const List = (props: any) => {
 
       {error && <div>Error: {error}</div>}
 
-      {pokemons && (
+      {results && (
         <div className="max-w-screen-xl w-full">
           <div className="card-grid-container w-full">
-            {pokemons.map((pokemon: any) => (
+            {results.map((pokemon: any) => (
               <Card key={pokemon.name} pokemon={pokemon} />
             ))}
           </div>

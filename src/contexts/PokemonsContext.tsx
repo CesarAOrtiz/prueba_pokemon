@@ -1,95 +1,80 @@
 import {
   useState,
   useEffect,
+  useReducer,
   createContext,
   useContext,
   useCallback,
 } from "react";
-import { Result, Data } from "../interfaces";
+import { Data } from "../interfaces";
+import pokemonsReducer, { initialState } from "./PokemonReducer";
 
 export type TPokemonsContext = {
-  pokemons: Data[];
+  results: Data[];
   fetchNextPokemons: () => void;
+  haveNext: boolean;
   fetchPreviousPokemons: () => void;
+  havePrevious: boolean;
   fetchPokemonsByPage: (page: number) => void;
   loading: boolean;
   error: string;
-  total: number;
   pageSize: number;
   pages: number;
   currentPage: number;
-  haveNext: boolean;
-  havePrevious: boolean;
 };
 
 const defaultPokemonsContext: TPokemonsContext = {
-  pokemons: [],
+  results: [],
   fetchNextPokemons: () => {},
+  haveNext: false,
   fetchPreviousPokemons: () => {},
+  havePrevious: false,
   fetchPokemonsByPage: () => {},
   loading: false,
   error: "",
-  total: 0,
   pageSize: 20,
   pages: 0,
   currentPage: 1,
-  haveNext: false,
-  havePrevious: false,
 };
 
 const PokemonsContext = createContext<TPokemonsContext>(defaultPokemonsContext);
 
 export const usePokemons = () => useContext(PokemonsContext);
 
-export const PokemonsProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const [pokemons, setPokemons] = useState<Result>({
-    count: 0,
-    results: [],
-    next: null,
-    previous: null,
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+export const PokemonsProvider = (props: { children: React.ReactNode }) => {
+  const [pokemonsState, dispatch] = useReducer(pokemonsReducer, initialState);
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchPokemons = useCallback(async (url: string) => {
-    setLoading(true);
-    setError("");
+    dispatch({ type: "FETCH_POKEMONS_REQUEST" });
     try {
       const response = await fetch(url);
       const data = await response.json();
-      setLoading(false);
-      setPokemons(data);
+      dispatch({ type: "FETCH_POKEMONS_SUCCESS", payload: data });
     } catch (error: any) {
-      setLoading(false);
-      setError(error.message);
+      dispatch({ type: "FETCH_POKEMONS_FAILURE", payload: error.message });
     }
   }, []);
 
   const fetchNextPokemons = useCallback(async () => {
-    if (pokemons.next) {
-      fetchPokemons(pokemons.next);
+    if (pokemonsState.next) {
+      fetchPokemons(pokemonsState.next);
       setCurrentPage((prev) => prev + 1);
     }
-  }, [pokemons, fetchPokemons]);
+  }, [pokemonsState, fetchPokemons]);
 
   const fetchPreviousPokemons = useCallback(async () => {
-    if (pokemons.previous) {
-      fetchPokemons(pokemons.previous);
+    if (pokemonsState.previous) {
+      fetchPokemons(pokemonsState.previous);
       setCurrentPage((prev) => prev - 1);
     }
-  }, [pokemons, fetchPokemons]);
+  }, [pokemonsState, fetchPokemons]);
 
   const fetchPokemonsByPage = useCallback(
     (page: number) => {
-      const url = `https://pokeapi.co/api/v2/pokemon?offset=${
-        page * 20 - 20
-      }&limit=${20}`;
-      fetchPokemons(url);
+      const url = `https://pokeapi.co/api/v2/pokemon?`;
+      const query = `offset=${page * 20 - 20}&limit=${20}`;
+      fetchPokemons(url + query);
       setCurrentPage(page);
     },
     [fetchPokemons]
@@ -102,21 +87,16 @@ export const PokemonsProvider = ({
   return (
     <PokemonsContext.Provider
       value={{
-        pokemons: pokemons.results,
+        ...pokemonsState,
         fetchNextPokemons,
         fetchPreviousPokemons,
         fetchPokemonsByPage,
-        loading,
-        error,
-        total: pokemons.count,
         pageSize: 20,
-        pages: Math.ceil(pokemons.count / 20),
+        pages: Math.ceil(pokemonsState.count / 20),
         currentPage,
-        haveNext: !!pokemons.next,
-        havePrevious: !!pokemons.previous,
       }}
     >
-      {children}
+      {props.children}
     </PokemonsContext.Provider>
   );
 };
